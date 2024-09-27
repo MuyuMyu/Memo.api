@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using Memo.api.Context;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -5,6 +8,11 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var connectionString = builder.Configuration.GetConnectionString("MemoConnection");
+
+builder.Services.AddDbContext<MemoContext>(options => {
+    options.UseSqlite(connectionString);
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -39,3 +47,4 @@ internal record WeatherForecast(DateTime Date, int TemperatureC, string? Summary
 {
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 }
+
