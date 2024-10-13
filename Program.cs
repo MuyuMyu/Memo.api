@@ -1,5 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Memo.api.Context;
+using Memo.api;
+using Memo.api.Context.Repository;
+using Memo.api.Service;
+using Memo.api.Extensions;
+using AutoMapper;
+using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,7 +18,34 @@ var connectionString = builder.Configuration.GetConnectionString("MemoConnection
 
 builder.Services.AddDbContext<MemoContext>(options => {
     options.UseSqlite(connectionString);
+}).AddUnitOfWork<MemoContext>()
+  .AddCustomRepository<Memo.api.Context.Memo,MemoRepository>()
+  .AddCustomRepository<User,UserRepository>()
+  .AddCustomRepository<ToDo,ToDoRepository>();
+
+//添加AutoMapper
+
+
+builder.Services.AddTransient<IToDoService, ToDoService>();
+builder.Services.AddTransient<IMemoService, MemoService>();
+builder.Services.AddTransient<ILoginService, LoginService>();
+
+var automapperConfog = new MapperConfiguration(config =>
+{
+    config.AddProfile(new AutoMapperProFile());
 });
+
+builder.Services.AddSingleton(automapperConfog.CreateMapper());
+
+builder.Services.AddControllers();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Memo.api", Version = "v1" });
+});
+
+// 添加日志
+builder.Services.AddLogging();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
